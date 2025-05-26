@@ -1,4 +1,4 @@
-import { robotRoutes, robotModelCodes } from "./paths"
+import { robotRoutes} from "./paths"
 import { showNotification } from '../components/notifications'
 
 function generateOrderId(): string {
@@ -35,7 +35,8 @@ export async function sendRobotTask<
 
     if (!response.ok) throw new Error(`Error HTTP: ${response.status}`)
 
-    showNotification(`✅ Tarea enviada: ${robot.toUpperCase()} → ${routeName}`, 'success')
+    showNotification(`✅ Tarea enviada: ${String(robot).toUpperCase()} → ${String(routeName)}`, 'success')
+
   } catch (err) {
     console.error(err)
     showNotification('❌ Error enviando tarea. Revisa la consola.', 'error')
