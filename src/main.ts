@@ -1,33 +1,49 @@
-import './styles/main.scss'
-import { sendRobotTask } from './utils/robot'
+import { robotRoutes } from './paths'
+import { robotModelCodes } from './paths' // o './robotConfig'
+import { showNotification } from '../components/notifications'
 
-document.addEventListener('DOMContentLoaded', () => {
-  const app = document.getElementById('app')!
+function generateOrderId(): string {
+  const now = new Date()
+  return now.toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)
+}
 
-  app.innerHTML = `
-    <h1 class="fade-in">Control de Robots</h1>
+export async function sendRobotTask<
+  T extends keyof typeof robotRoutes
+>(
+  robot: T,
+  routeName: keyof typeof robotRoutes[T],
+  buttonEl: HTMLButtonElement
+) {
+  const taskPath = robotRoutes[robot][routeName]
+  const modelProcessCode = robotModelCodes[robot] // dinámico por robot
 
-    <div class="robot-container">
-      <div class="robot-card fade-in-up">
-        <h2>Forklift</h2>
-        <button data-robot="forklift" data-path="Mover Pallet Abajo">Mover Pallet Abajo</button>
-        <button data-robot="forklift" data-path="Mover Pallet Arriba">Mover Pallet Arriba</button>
-      </div>
+  const body = {
+    modelProcessCode,
+    priority: 6,
+    fromSystem: 'MES',
+    orderId: generateOrderId(),
+    taskOrderDetail: [{ taskPath }],
+  }
 
-      <div class="robot-card fade-in-up">
-        <h2>Mouse</h2>
-        <button data-robot="mouse" data-path="Mover Estantería al Fondo">Mover Estantería al Fondo</button>
-        <button data-robot="mouse" data-path="Mover Estantería al Frente">Mover Estantería al Frente</button>
-      </div>
-    </div>
-  `
+  buttonEl.disabled = true
+  const originalText = buttonEl.textContent
+  buttonEl.textContent = 'Enviando...'
 
-
-  document.querySelectorAll('button[data-robot]')?.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const robot = (btn as HTMLButtonElement).dataset.robot as 'robot1' | 'robot2'
-      const path = (btn as HTMLButtonElement).dataset.path as 'Ruta A' | 'Ruta B'
-      sendRobotTask(robot, path, btn as HTMLButtonElement)
+  try {
+    const response = await fetch('http://192.168.5.6:7000/ics/taskOrder/addTask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
     })
-  })
-})
+
+    if (!response.ok) throw new Error(`Error HTTP: ${response.status}`)
+
+    showNotification(`✅ Tarea enviada: ${robot.toUpperCase()} → ${routeName}`, 'success')
+  } catch (err) {
+    console.error(err)
+    showNotification('❌ Error enviando tarea. Revisa la consola.', 'error')
+  } finally {
+    buttonEl.disabled = false
+    buttonEl.textContent = originalText
+  }
+}

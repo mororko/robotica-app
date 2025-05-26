@@ -9,3 +9,9 @@ export const robotRoutes = {
     "Mover Estantería al Frente": "10000001,10000004",
   },
 } as const
+
+
+export const robotModelCodes = {
+  forklift: 'forkAutoTemplate2',
+  mouse: 'liftMoveShelf1',
+} as const
