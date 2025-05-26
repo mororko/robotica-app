@@ -6,9 +6,11 @@ function generateOrderId(): string {
   return now.toISOString().replace(/[-:T.Z]/g, '').slice(0, 14)
 }
 
-export async function sendRobotTask(
-  robot: 'robot1' | 'robot2',
-  routeName: keyof typeof robotRoutes['robot1'],
+export async function sendRobotTask<
+  T extends keyof typeof robotRoutes
+>(
+  robot: T,
+  routeName: keyof typeof robotRoutes[T],
   buttonEl: HTMLButtonElement
 ) {
   const taskPath = robotRoutes[robot][routeName]
@@ -33,7 +35,7 @@ export async function sendRobotTask(
 
     if (!response.ok) throw new Error(`Error HTTP: ${response.status}`)
 
-    showNotification(`✅ Tarea enviada para ${robot.toUpperCase()} (${routeName})`, 'success')
+    showNotification(`✅ Tarea enviada: ${robot.toUpperCase()} → ${routeName}`, 'success')
   } catch (err) {
     console.error(err)
     showNotification('❌ Error enviando tarea. Revisa la consola.', 'error')
