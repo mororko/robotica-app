@@ -1,4 +1,4 @@
-import { robotRoutes } from './paths'
+import { robotRoutes, robotModelCodes } from "./paths"
 import { showNotification } from '../components/notifications'
 
 function generateOrderId(): string {

@@ -1,6 +1,9 @@
-import { robotRoutes } from './paths'
-import { robotModelCodes } from './paths' // o './robotConfig'
-import { showNotification } from '../components/notifications'
+import { robotRoutes, robotModelCodes } from "./utils/paths"
+import { showNotification } from './components/notifications'
+import './styles/main.scss'
+
+
+console.log("App inicializada correctamente")
 
 function generateOrderId(): string {
   const now = new Date()
@@ -15,7 +18,7 @@ export async function sendRobotTask<
   buttonEl: HTMLButtonElement
 ) {
   const taskPath = robotRoutes[robot][routeName]
-  const modelProcessCode = robotModelCodes[robot] // dinámico por robot
+  const modelProcessCode = robotModelCodes[robot]
 
   const body = {
     modelProcessCode,
@@ -47,3 +50,33 @@ export async function sendRobotTask<
     buttonEl.textContent = originalText
   }
 }
+
+// 👇 Aquí comienza la interfaz visual
+document.addEventListener('DOMContentLoaded', () => {
+  const app = document.getElementById('app')
+  if (!app) return
+
+  app.innerHTML = `
+    <h1>Control de Robots</h1>
+    <div class="robot-card">
+      <h2>Forklift</h2>
+      <button data-robot="forklift" data-path="Mover Pallet Abajo">Mover Pallet Abajo</button>
+      <button data-robot="forklift" data-path="Mover Pallet Arriba">Mover Pallet Arriba</button>
+    </div>
+    <div class="robot-card">
+      <h2>Mouse</h2>
+      <button data-robot="mouse" data-path="Mover Estantería al Fondo">Mover Estantería al Fondo</button>
+      <button data-robot="mouse" data-path="Mover Estantería al Frente">Mover Estantería al Frente</button>
+    </div>
+  `
+
+  // Agregar listeners a los botones
+  const buttons = document.querySelectorAll<HTMLButtonElement>('button[data-robot]')
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const robot = btn.dataset.robot as keyof typeof robotRoutes
+      const path = btn.dataset.path as keyof typeof robotRoutes[typeof robot]
+      sendRobotTask(robot, path, btn)
+    })
+  })
+})
